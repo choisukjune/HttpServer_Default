@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sample Site</title>
+
+
+    <script src="https://code.jquery.com/jquery-3.5.1.js" integrity="sha256-QWo7LDvxbWT2tbbQ97B53yJnYU3WhH/C8ycbRAkjPDc=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css">
+    <style>
+    body { padding:0px; }
+    table{
+        width : 100%;
+        background-color : #ccc
+    }
+    tr{ margin : 1px; }
+    td{
+        border : 0px solid #ccc;
+        padding: 3px;
+        background-color : #fff;
+        font-size :11px;
+    }
+    </style>
+    <script>
+    var htmlToElement = function(html) {
+        var template = document.createElement('template');
+        html = html.trim(); // Never return a text node of whitespace as the result
+        template.innerHTML = html;
+        return template.content;
+    }
+    
+    var getRequest = function( url,cbFunction ){
+        var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function() { // 요청에 대한 콜백
+        if (xhr.readyState === xhr.DONE) { // 요청이 완료되면
+            if (xhr.status === 200 || xhr.status === 201) {
+            //   console.log();
+                cbFunction( xhr.responseText )
+            } else {
+            console.error(xhr.responseText);
+            }
+        }
+        };
+        xhr.open('GET', url ); // 메소드와 주소 설정
+        xhr.send(); // 요청 전송 
+        // xhr.abort(); // 전송된 요청 취소
+
+    }
+
+    var postRequest = function( url, data, cbFunction ){
+        var xhr = new XMLHttpRequest();
+
+        xhr.onload = function() {
+            if (xhr.status === 200 || xhr.status === 201) {
+                console.log(xhr.responseText);
+                cbFunction( xhr.responseText );
+            } else {
+                console.error(xhr.responseText);
+            }
+        };
+        xhr.open('POST', url );
+        xhr.setRequestHeader('Content-Type', 'application/json'); // 컨텐츠타입을 json으로
+        xhr.send(JSON.stringify(data)); // 데이터를 stringify해서 보냄
+
+    }
+
+    var inputToObject = function(){
+        var a = window.document.getElementsByTagName("input")
+        var i = 0,iLen = a.length,io;
+        var r = {}
+        for(;i<iLen;++i){
+            io = a[ i ]
+            r[ io.name ] = io.value;
+        }
+        return r;
+    }
+
+
+    window.SERVER = {};
+    window.SERVER.HTTPSERVER = {};
+    window.SERVER.HTTPSERVER.HOST = "http://localhost";
+    window.SERVER.HTTPSERVER.PORT = 3000;
+    window.SERVER.HTTPSERVER.URL = window.SERVER.HTTPSERVER.HOST + ":" + window.SERVER.HTTPSERVER.PORT;
+    window.HTML = {};
+    window.HTML.list = {};
+    window.HTML.list.data = [];
+    window.HTML.list.cnt = 0;
+
+    window.addEventListener('DOMContentLoaded', (e) => {
+        console.log('DOM fully loaded and parsed');
+        var _el_btn_insertData = window.document.getElementById("insert");
+
+        _el_btn_insertData.addEventListener('click',function(e){
+            var b = inputToObject()
+            postRequest( window.SERVER.HTTPSERVER.URL + "/insert/insertData",b,function(data){
+                debugger;
+            })
+        })
+    });
+    
+
+
+
+    /*
+        {
+        "id": "54009488",
+        "source" : "",
+        "info": {
+            "링크": "http://row.oneblockdown.it/products/169840cprcmor",
+            "면세 범위": "- 한국 직배송 $150\n- 미국 배대지 $200",
+            "배송 정보": "- 한국 직배송 €40.00\n- 미국 배대지 €35,00"
+        },
+        "detail": [
+            "<p>&nbsp;</p>",
+            "<p>&nbsp;</p>",
+            "<p><img alt=\"B49315F0-ED45-478F-B21C-C32F70C23CA1.jpeg\" src=\"https://img.eomisae.co.kr/files/attach/images/153029/488/009/054/8a44ed2b30b40cdc2627007884b0d508.jpeg\" rel=\"xe_gallery\"></p>",
+        ],
+        "thmbnail": "https://img.eomisae.co.kr/files/thumbnails/488/009/054/190x190.crop.jpg?20210107174908",
+        "title": "해외 원 블럭 다운 (One Block Down) 무관세 소량 채굴 펑첸왕, 호카 등",
+        "date": "20210107"
+    },
+    */
+    </script>
+    <body>
+        
+        <div class="ui grid">
+            <div class="sixteen wide column" style="margin:50px 0px 10px 0px;text-align: center;">
+                <h1>SITE NAME</h1>
+            </div>
+            <div class="sixteen wide column" style="padding:50px;">
+                날짜 : <input type="text" id="date" name="date" value="20210112"><br>
+                제목 : <input type="text" id="title" name="title" value="쥬시쥬디, 겨울세일 50%"><br>
+                소스 : <input type="text" id="source" name="source" value="star1"><br>
+                정보 : <input type="text" id="info" name="info" value="01.12~01.14"><br>
+                링크 : <input type="text" id="link" name="link" value="https://www.tbhshop.co.kr/goods/event_sale.php?sno=785"><br>
+                이미지 URL : <input type="text" id="imgUrl" name="imgUrl" value="https://img.sta1.com/_up/sales/2021/01/1610423501846_f.jpg"><br>
+                <button id="insert">등록</button>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

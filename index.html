@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sample Site</title>
+
+
+    <script src="https://code.jquery.com/jquery-3.5.1.js" integrity="sha256-QWo7LDvxbWT2tbbQ97B53yJnYU3WhH/C8ycbRAkjPDc=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css">
+    <style>
+    body { padding:0px; }
+    table{
+        width : 100%;
+        background-color : #ccc
+    }
+    tr{ margin : 1px; }
+    td{
+        border : 0px solid #ccc;
+        padding: 3px;
+        background-color : #fff;
+        font-size :11px;
+    }
+    </style>
+    <script>
+    var htmlToElement = function(html) {
+        var template = document.createElement('template');
+        html = html.trim(); // Never return a text node of whitespace as the result
+        template.innerHTML = html;
+        return template.content;
+    }
+    
+    var getRequest = function( url,cbFunction ){
+        var xhr = new XMLHttpRequest();
+        debugger;
+        xhr.onreadystatechange = function() { // 요청에 대한 콜백
+        if (xhr.readyState === xhr.DONE) { // 요청이 완료되면
+            if (xhr.status === 200 || xhr.status === 201) {
+            //   console.log();
+                cbFunction( xhr.responseText )
+            } else {
+            console.error(xhr.responseText);
+            }
+        }
+        };
+        xhr.open('GET', url ); // 메소드와 주소 설정
+        xhr.send(); // 요청 전송 
+        // xhr.abort(); // 전송된 요청 취소
+
+    }
+
+    var getFileListRequest = function( url ){
+        var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function() { // 요청에 대한 콜백
+        if (xhr.readyState === xhr.DONE) { // 요청이 완료되면
+            if (xhr.status === 200 || xhr.status === 201) {
+
+            } else {
+            console.error(xhr.responseText);
+            }
+        }
+        };
+        xhr.open('GET', url ); // 메소드와 주소 설정
+        xhr.send(); // 요청 전송 
+        // xhr.abort(); // 전송된 요청 취소
+
+    }
+
+    var getScroll = function(){ 
+            
+        if ( window.pageYOffset != undefined ) { 
+            // console.log( " X-axis : " + pageXOffset + " Y-axis : " + pageYOffset )
+            return pageYOffset;
+        } else { 
+            var x_axis, y_axis, doc = document, 
+                ele = doc.documentElement, 
+                b = doc.body; 
+            x_axis = ele.scrollLeft || b.scrollLeft || 0; 
+            y_axis = ele.scrollTop || b.scrollTop || 0; 
+            // console.log( " X-axis : " + pageXOffset + " Y-axis : " + pageYOffset )
+            return pageYOffset;
+        } 
+    } 
+
+    window.SERVER = {};
+    window.SERVER.HTTPSERVER = {};
+    window.SERVER.HTTPSERVER.HOST = "http://localhost";
+    window.SERVER.HTTPSERVER.PORT = 3000;
+    window.SERVER.HTTPSERVER.URL = window.SERVER.HTTPSERVER.HOST + ":" + window.SERVER.HTTPSERVER.PORT;
+    window.HTML = {};
+    window.HTML.list = {};
+    window.HTML.list.data = [];
+    window.HTML.list.cnt = 0;
+
+    window.addEventListener('DOMContentLoaded', (e) => {
+        console.log('DOM fully loaded and parsed');
+        getRequest( window.SERVER.HTTPSERVER.URL + "/html/getFileCount", function(data){
+            window.HTML.list.data = JSON.parse( data );
+            getRequest( window.SERVER.HTTPSERVER.URL + "/html/" + window.HTML.list.data[ window.HTML.list.cnt ], function(data){
+                var a = window.document.getElementsByClassName( "cards" )[0]
+                    a.appendChild( htmlToElement( data ) )
+            })
+        })
+         
+    });
+    //
+    var getNextData = function(e){
+        
+        if(  window.HTML.list.data.length == window.HTML.list.cnt + 1 )
+        {
+            window.removeEventListener( 'scroll', getNextData );
+            alert( "더이상 데이터가 존재하지 않습니다." )
+        }
+        else
+        {
+            if( (document.documentElement.scrollTop + window.innerHeight + 500 ) >= document.documentElement.scrollHeight )
+            {
+                ++window.HTML.list.cnt;
+                getRequest( window.SERVER.HTTPSERVER.URL + "/html/" + window.HTML.list.data[ window.HTML.list.cnt ], function(data){
+                    var a = window.document.getElementsByClassName( "cards" )[0]
+                    a.appendChild( htmlToElement( data ) )
+                })
+            }
+        }
+    };
+
+    window.addEventListener('scroll', getNextData )
+    
+    </script>
+    <body>
+        <div class="ui grid">
+            <div class="sixteen wide column" style="margin:50px 0px 10px 0px;text-align: center;">
+                <h1>SITE NAME</h1>
+            </div>
+            <div class="sixteen wide column" style="padding:50px;">
+                <div class="ui eight stackable cards">
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

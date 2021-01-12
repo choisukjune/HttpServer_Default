@@ -91,7 +91,7 @@ var createWindow = function() {
   mainWindow.webContents.openDevTools();
 
   //HTTPServer_MongoDB - 49320 - MemberSession 서버;
-//  mainWindow.webContents.executeJavaScript('require( "' + ROOTPATH + '/app.js" );');
+  //mainWindow.webContents.executeJavaScript('require( "' + ROOTPATH + '/app.js" );');
 
   //mainWindow.webContents.executeJavaScript('require( "' + _rootPath + '/index.js" );');
 
