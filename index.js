@@ -1,5 +1,7 @@
 var express = require('express')
 var path = require( 'path' )
+var http = require( 'http' )
+var WebSocket = require( "ws" )
 var app = express()
 var port = 3000
 
@@ -19,4 +21,23 @@ app.get('/', function(req, res){
 })
 
 
-app.listen(port, function(){ console.log(`listening at http://localhost:${port}`); })
+var server = http.createServer(app);
+var wss = new WebSocket.Server({ server });
+
+wss.on('connection', function (ws) {
+	var r  = {
+		type : "message"
+		, data : "websocket Connected!"
+	}
+	
+	ws.send( JSON.stringify(r) );
+	app.locals.clients = wss.clients;
+	ws.on('close', function () {
+	  console.log('stopping client interval');
+	});
+});
+
+//start our server
+server.listen(process.env.PORT || 3000, () => {
+    console.log(`Server started on port ${server.address().port} :)`);
+});

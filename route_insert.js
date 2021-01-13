@@ -2,6 +2,7 @@ var express = require('express');
 var path = require( 'path' );
 var fs = require( "fs" );
 var router = express.Router();
+var WebSocket = require("ws");
 
 // middleware that is specific to this router
 router.use(function timeLog(req, res, next) {
@@ -14,6 +15,29 @@ router.get('/*.html', function(req, res){
 	console.log( Date.now() + " -- " + req.ip + " - " + fileNm )
 	res.sendFile(path.join(__dirname + "/insert" + fileNm ));
 })
+
+const broadcast = (clients, message, type) => {
+
+	var r = {
+		type : type
+		, data : message
+	}
+
+    clients.forEach((client) => {
+
+        if (client.readyState === WebSocket.OPEN) {
+
+            client.send( JSON.stringify( r ) );
+        }
+    });
+};
+
+router.get("/dog", (req, res) => {
+	debugger;
+    broadcast(req.app.locals.clients, "Bark!");
+
+    return res.sendStatus(200);
+});
 
 /*
         {
@@ -34,29 +58,34 @@ router.get('/*.html', function(req, res){
         "date": "20210107"
     },
 */
-
-var resultJsonToHtml = function( targetDate ){
+var pad = function(n, width){
+	n = n + '';
+	return n.length >= width ? n : new Array(width - n.length + 1).join('0') + n;
+}
+var resultJsonToHtml__insert = function( targetDate, fileNm ){
 	console.log( "[S] - window.FNS.resultJsonToHtml" )
 		//targetDate = targetDate || window.UTIL.DateFormat.YYYYMMDD();
-	var targetFilePath = targetFilePath || "../crawler_sale_data/detail/json/" + targetDate + "/" + targetDate + ".json";
+	var targetFilePath = targetFilePath || "../crawler_sale_data/detail/json/" + targetDate + "/" + fileNm + ".json";
 	var resultDirPath = resultDirPath || "./html/";
 
-	var _ta = JSON.parse( fs.readFileSync( targetFilePath ).toString() ).reverse();
-
+	var _to = JSON.parse( fs.readFileSync( targetFilePath ).toString() );
+	var _taKeys = Object.keys( _to ).sort().reverse();
 	var r = `
 	`;
-	var i = 0,iLen =_ta.length,io;
+	var i=0,iLen= _taKeys.length,io,zo;
 	for(;i<iLen;++i){
-		io = _ta[ i ];
-		console.log( io.id );
-		var thmbnail = io.thmbnail;
+		io = _taKeys[ i ];
+		zo = _to[ io ];
+		console.log( zo.id );
+		var id = zo.id;
+		var thmbnail = zo.thmbnail;
 		var description = ""
-		var title = io.title;
-		var date = io.date;
+		var title = zo.title;
+		var date = zo.date;
 		var href = "#";
 		var s,so;
-		for( s in io.info ){
-			so = io.info[ s ];
+		for( s in zo.info ){
+			so = zo.info[ s ];
 			if( s == "링크" ) href = so;
 			else
 			{
@@ -66,7 +95,7 @@ var resultJsonToHtml = function( targetDate ){
 		//r += "<td>내용</td><td>" + io.detail.join("\n").replace( /rel\=\"xe_gallery\"/gi, "width='200'" ) + "</td>"
 		//${description}
 		r += `
-		<div class="card">
+		<div class="card" id=${id}>
 			<div class="image">
 			<img src="${thmbnail}">
 			</div>
@@ -97,9 +126,9 @@ var resultJsonToHtml = function( targetDate ){
 
 	r += `
 	`
-
+	debugger;
 	fs.mkdirSync( resultDirPath, { recursive: true } );
-	fs.writeFileSync( resultDirPath + targetDate + ".html", r, {flag : "w"} )
+	fs.writeFileSync( resultDirPath + fileNm + ".html", r, {flag : "w"} )	
 	console.log( "[E] - window.FNS.resultJsonToHtml" )
 }
 
@@ -108,12 +137,24 @@ router.post('/insertData', function(req, res){
 	debugger;
 	console.log(req.body);  
 	
-	var baseDir = "../crawler_sale_data/detail/json/" + req.body.date + "/" + req.body.date + ".json"
-	var _txt = fs.readFileSync( baseDir ).toString()
-	var _to = JSON.parse( _txt );
+	var flineNm = req.body.date + "_" + req.body.source;
+	
+	var _targetFilePath = "../crawler_sale_data/detail/json/" + req.body.date + "/" + flineNm + ".json"
+	var isExist = fs.existsSync( _targetFilePath );
+	if( isExist )
+	{
+		var _txt = fs.readFileSync( _targetFilePath ).toString()
+		var _to = JSON.parse( _txt );
+	}
+	else
+	{
+		var _to = {};
+	}
+	
+	var id = flineNm + "_" + pad( Object.keys( _to ).length,2);
 
 	var o = {
-		_id : req.body.date + "_" + req.body.source
+		id : id
 		, source : req.body.source
 		, info : {
 			"링크" : req.body.link
@@ -123,10 +164,64 @@ router.post('/insertData', function(req, res){
         , title : req.body.title
         , date : req.body.date
 	}
-	_to.push( o )
+	_to[ id ] = o;
+	/*/
 	fs.writeFileSync( baseDir,JSON.stringify( _to, null, 4), {flag:"w"} );
+	
 	resultJsonToHtml( req.body.date )
 	res.send(req.body);
+	/*/
+	fs.writeFileSync( _targetFilePath,JSON.stringify( _to, null, 4), {flag:"w"} );
+	
+	resultJsonToHtml__insert( req.body.date, flineNm )
+
+	var id = o.id;
+	var thmbnail = o.thmbnail;
+	var description = ""
+	var title = o.title;
+	var date = o.date;
+	var href = "#";
+	var s,so;
+	for( s in o.info ){
+		so = o.info[ s ];
+		if( s == "링크" ) href = so;
+		else
+		{
+			description += s + " : " + so + "<br>"
+		}
+	}
+	
+	var r = `
+	<div class="card" id=${id}>
+		<div class="image">
+		<img src="${thmbnail}">
+		</div>
+		<div class="content">
+		<div class="header">${title}</div>
+		<div class="meta">
+			<a>${date}</a>
+		</div>
+
+		<div class="description" style="font-size:11px;word-break: break-all;">
+			
+		</div>
+		</div>
+		<div class="extra content">
+			<!--span class="right floated">
+				Right-someText
+			</span-->
+			<a href="${href}" target="_blank"><button class="fluid ui mini button">해당사이트이동</button></a>
+			<!--span>
+				<i class="user icon"></i>
+				Left-someText
+			</span-->
+		</div>
+	</div>
+	`
+	broadcast(req.app.locals.clients, r, "render" );
+	res.send(req.body);
+	
+	//*/
 })
 
 

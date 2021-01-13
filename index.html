@@ -28,34 +28,21 @@
         var template = document.createElement('template');
         html = html.trim(); // Never return a text node of whitespace as the result
         template.innerHTML = html;
-        return template.content;
+        var r = {
+            cnt : template.content.children.length
+            , data : template.content
+        }
+        
+        return r;
     }
     
     var getRequest = function( url,cbFunction ){
         var xhr = new XMLHttpRequest();
-        debugger;
         xhr.onreadystatechange = function() { // 요청에 대한 콜백
         if (xhr.readyState === xhr.DONE) { // 요청이 완료되면
             if (xhr.status === 200 || xhr.status === 201) {
             //   console.log();
                 cbFunction( xhr.responseText )
-            } else {
-            console.error(xhr.responseText);
-            }
-        }
-        };
-        xhr.open('GET', url ); // 메소드와 주소 설정
-        xhr.send(); // 요청 전송 
-        // xhr.abort(); // 전송된 요청 취소
-
-    }
-
-    var getFileListRequest = function( url ){
-        var xhr = new XMLHttpRequest();
-        xhr.onreadystatechange = function() { // 요청에 대한 콜백
-        if (xhr.readyState === xhr.DONE) { // 요청이 완료되면
-            if (xhr.status === 200 || xhr.status === 201) {
-
             } else {
             console.error(xhr.responseText);
             }
@@ -95,17 +82,25 @@
 
     window.addEventListener('DOMContentLoaded', (e) => {
         console.log('DOM fully loaded and parsed');
-        getRequest( window.SERVER.HTTPSERVER.URL + "/html/getFileCount", function(data){
-            window.HTML.list.data = JSON.parse( data );
-            getRequest( window.SERVER.HTTPSERVER.URL + "/html/" + window.HTML.list.data[ window.HTML.list.cnt ], function(data){
+        getRequest( window.SERVER.HTTPSERVER.URL + "/html/getFileCount", function(d){
+            window.HTML.list.data = JSON.parse( d );
+            debugger;
+            getRequest( window.SERVER.HTTPSERVER.URL + "/html/" + window.HTML.list.data[ window.HTML.list.cnt ], function(d){
                 var a = window.document.getElementsByClassName( "cards" )[0]
-                    a.appendChild( htmlToElement( data ) )
+                var data = htmlToElement( d )
+                debugger;
+                a.appendChild( data.data )
+                if( data.cnt < 24 )
+                {
+                    getNextData();
+                }
+
             })
         })
          
     });
     //
-    var getNextData = function(e){
+    var getNextData = function(){
         
         if(  window.HTML.list.data.length == window.HTML.list.cnt + 1 )
         {
@@ -114,25 +109,58 @@
         }
         else
         {
-            if( (document.documentElement.scrollTop + window.innerHeight + 500 ) >= document.documentElement.scrollHeight )
-            {
-                ++window.HTML.list.cnt;
-                getRequest( window.SERVER.HTTPSERVER.URL + "/html/" + window.HTML.list.data[ window.HTML.list.cnt ], function(data){
-                    var a = window.document.getElementsByClassName( "cards" )[0]
-                    a.appendChild( htmlToElement( data ) )
-                })
-            }
+
+            ++window.HTML.list.cnt;
+            getRequest( window.SERVER.HTTPSERVER.URL + "/html/" + window.HTML.list.data[ window.HTML.list.cnt ], function(d){
+                var a = window.document.getElementsByClassName( "cards" )[0]
+                var data = htmlToElement( d )
+                a.appendChild( data.data )
+                if( data.cnt < 8 )
+                {
+                    getNextData();
+                }
+            })
         }
     };
 
-    window.addEventListener('scroll', getNextData )
+    var scrollToGetNextData = function(){
+        
+        if(  window.HTML.list.data.length == window.HTML.list.cnt + 1 )
+        {
+            window.removeEventListener( 'scroll', scrollToGetNextData );
+            alert( "더이상 데이터가 존재하지 않습니다." )
+        }
+        if( (document.documentElement.scrollTop + window.innerHeight + 500 ) >= document.documentElement.scrollHeight )
+        {
+            getNextData()
+        }
+    };
     
+
+    window.addEventListener('scroll', scrollToGetNextData );
+    (function() {
+
+        var ws = new WebSocket(`ws://${location.host}`);
+        ws.onmessage = function(e) {
+            var msg = JSON.parse( e.data )
+            if( msg.type == "message" )
+            {
+                console.log( msg.data )
+            }
+            
+            if( msg.type == "render" )
+            {
+                var a = window.document.getElementsByClassName( "cards" )[0]
+                var data = htmlToElement( msg.data )
+                a.insertBefore(data.data, a.childNodes[0])
+                //a.appendChild( data.data )
+            }
+            
+        };
+    })()
     </script>
     <body>
-        <div class="ui grid">
-            <div class="sixteen wide column" style="margin:50px 0px 10px 0px;text-align: center;">
-                <h1>SITE NAME</h1>
-            </div>
+        <div class="ui  grid">
             <div class="sixteen wide column" style="padding:50px;">
                 <div class="ui eight stackable cards">
                 </div>
