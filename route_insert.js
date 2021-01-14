@@ -23,13 +23,16 @@ const broadcast = (clients, message, type) => {
 		, data : message
 	}
 
-    clients.forEach((client) => {
+	if( clients )
+	{
+		clients.forEach((client) => {
 
-        if (client.readyState === WebSocket.OPEN) {
-
-            client.send( JSON.stringify( r ) );
-        }
-    });
+			if (client.readyState === WebSocket.OPEN) {
+	
+				client.send( JSON.stringify( r ) );
+			}
+		});
+	}
 };
 
 router.get("/dog", (req, res) => {

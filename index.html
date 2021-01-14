@@ -97,7 +97,29 @@
 
             })
         })
-         
+        var msgFNS = {
+            message : function( o ){
+                console.log( o.data );
+                return;
+            }
+            , render : function( o ){
+                var a = window.document.getElementsByClassName( "cards" )[0];
+                var data = htmlToElement( o.data );
+                
+                //*/
+                a.insertBefore(data.data, a.childNodes[0]);
+                /*/
+                a.appendChild( data.data )
+                //*/
+                return;
+            }
+        };
+        
+        var ws = new WebSocket(`ws://${location.host}`);
+        ws.onmessage = function(e) {
+            var msg = JSON.parse( e.data );
+            msgFNS[ msg.type ]( msg );
+        };     
     });
     //
     var getNextData = function(){
@@ -138,26 +160,6 @@
     
 
     window.addEventListener('scroll', scrollToGetNextData );
-    (function() {
-
-        var ws = new WebSocket(`ws://${location.host}`);
-        ws.onmessage = function(e) {
-            var msg = JSON.parse( e.data )
-            if( msg.type == "message" )
-            {
-                console.log( msg.data )
-            }
-            
-            if( msg.type == "render" )
-            {
-                var a = window.document.getElementsByClassName( "cards" )[0]
-                var data = htmlToElement( msg.data )
-                a.insertBefore(data.data, a.childNodes[0])
-                //a.appendChild( data.data )
-            }
-            
-        };
-    })()
     </script>
     <body>
         <div class="ui  grid">
