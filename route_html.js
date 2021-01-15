@@ -81,11 +81,11 @@ router.get('/*.html', function(req, res){
 	var fileNm = req.path;
 	console.log( Date.now() + " -- " + req.ip + " - " + fileNm )
 	
-	var targetDate = req.params[0].split("_")[0];
-	var fileNm00 = req.params[0]
-	JsonToHtml( fileNm00, function(data){
-		res.sendFile(path.join(__dirname + "/html/" + data + ".html" ));
-	})
+	// var targetDate = req.params[0].split("_")[0];
+	// var fileNm00 = req.params[0]
+	// JsonToHtml( fileNm00, function(data){
+		res.sendFile(path.join(__dirname + "/html/" + fileNm ));
+	// })
 	
 })
 
