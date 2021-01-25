@@ -79,7 +79,7 @@
     var AvatarImage = function(letters, size) {
         var canvas = window.document.createElement('canvas');
         var context = canvas.getContext("2d");
-        var size = size || 60;
+        var size = size || 20;
     
         // Generate a random color every time function is called
         var color =  "#" + (Math.random() * 0xFFFFFF << 0).toString(16);
@@ -90,7 +90,7 @@
     
         // Select a font family to support different language characters
         // like Arial
-        context.font = Math.round(canvas.width / 2) + "px Arial";
+        context.font = "bold " + Math.round(canvas.width / 2) + "px Arial";
         context.textAlign = "center";
     
         // Setup background and front color
@@ -108,6 +108,26 @@
         return dataURI;
     }
 
+    /*
+    * @function
+    * @param {String} url
+    * @return {Object} o
+    */
+    var paramToObject = function( url ){
+        
+        var r =  url.split("?")[ 1 ];
+        var a = r.split("&");
+        var o = {};
+        var i = 0,iLen = a.length,io;
+        
+        for(;i<iLen;++i){
+            io = a[ i ];
+            var _ta = io.split( "=" );
+            o[ _ta[0] ] = _ta[ 1 ];
+        }
+        console.log( o )
+        return o;
+    };
 
     window.brands = {
         favicon : {
@@ -204,10 +224,15 @@
             if( io.msrp != null ) var msrp = '<span style="text-decoration:line-through;margin-right:0.2em;">' + io.msrp + "</span>"
             else if( io.msrp != null ) var msrp = ""
 
-
+            var param = paramToObject( window.location.href )
+            var tag = decodeURIComponent( param.tag );
             var extInfo = '<div style="word-break: break-all;">';
             io.info.forEach(function(item){
-                extInfo += '<span style="margin-left:5px;"><a href="/html/findHashTag.html?tag=' + item  + '" style="color: #00a1ef!important;">#' + item + '</a></span>';
+                if( tag == item )
+                {
+                    extInfo += '<span style="margin-left:5px;"><a href="/html/findHashTag.html?tag=' + item  + '" style="color: #ff0000!important;">#' + item + '</a></span>';
+                }
+                else extInfo += '<span style="margin-left:5px;"><a href="/html/findHashTag.html?tag=' + item  + '" style="color: #00a1ef!important;">#' + item + '</a></span>';
             });
                 extInfo += "</div>";
 
@@ -254,7 +279,7 @@
                     </span-->
                 
                 </div>
-                    ${extInfo}               
+                    ${extInfo}
                 <div class="description" style="font-size:11px;word-break: break-all;margin-top: 3px;">
                 <div>
                     <a href="${href}" target="_blank" style="margin-top: 0.2em;">
@@ -368,21 +393,23 @@
     window.HTML.list.totalCnt = 0;
 
     window.HTML.list.maxPage = 0;
-    window.HTML.list.curPage = 1;
+    window.HTML.list.curPage = 0;
     window.HTML.list.prevPage = 0;
     window.HTML.list.nextPage = 1;
 
     window.addEventListener('DOMContentLoaded', (e) => {
         console.log('DOM fully loaded and parsed');
-        getRequest( window.SERVER.APISERVER.URL + "/getTotalCount?colNm=all", function(d){
-            window.HTML.list.totalCnt = Number( d );
-            
-            window.HTML.list.maxPage = parseInt( ( window.HTML.list.totalCnt / 30 ) + 1 );
-            
+                    
             ++window.HTML.list.curPage;
-
-            getRequest( window.SERVER.APISERVER.URL + "/findAll?page=" + window.HTML.list.curPage, function(d){
-                window.HTML.list.data = JSON.parse( d );
+            var param = paramToObject( window.location.href ) 
+            getRequest( window.SERVER.APISERVER.URL + "/findHashTag?tag=" + param.tag + "&page=" + window.HTML.list.curPage, function(d){
+        
+                var _to = JSON.parse( d )
+                window.HTML.list.totalCnt = Number( _to.cnt );
+            
+                window.HTML.list.maxPage = parseInt( ( window.HTML.list.totalCnt / 30 ) + 1 );
+        
+                window.HTML.list.data = _to.r;
                 window.HTML.list.curCnt += window.HTML.list.data.length;
                 
                 loader.on();
@@ -395,7 +422,7 @@
                 window.HTML.list.nextPage = window.HTML.list.curPage + 1;
 
             })
-        })
+        
         var msgFNS = {
             message : function( o ){
                 console.log( o.data );
@@ -439,8 +466,11 @@
 
             ++window.HTML.list.curPage;
             loader.on();    
-            getRequest( window.SERVER.APISERVER.URL + "/findAll?page=" + window.HTML.list.curPage, function(d){
-                window.HTML.list.data = JSON.parse( d );
+            var param = paramToObject( window.location.href ) 
+            getRequest( window.SERVER.APISERVER.URL + "/findHashTag?tag=" + param.tag + "&page=" + window.HTML.list.curPage, function(d){
+                var _to = JSON.parse( d );
+                debugger;
+                window.HTML.list.data = _to.r;
                 window.HTML.list.curCnt += window.HTML.list.data.length;
 
                 insertCard( window.HTML.list.data )
