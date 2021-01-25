@@ -136,6 +136,8 @@
             , randomwalk : AvatarImage( "R", 40 )
             , bluesman : AvatarImage( "B", 40 )
             , endclothing : AvatarImage( "E", 40 )
+            , beams : "https://www.beams.co.jp/favicon.ico"
+            , nanamica : "https://www.nanamica.com/resource/favicon/favicon.ico"
         }
     }
     
@@ -171,12 +173,12 @@
 
     var loader = {};
         loader.on = function(){
-            var _el = window.document.getElementById( "loader" );
-            _el.style.display = "block"
+            //var _el = window.document.getElementById( "loader" );
+            //_el.style.display = "block"
         }
         loader.off = function(){
-            var _el = window.document.getElementById( "loader" );
-            setTimeout(function(){ return _el.style.display = "none" },500)
+            //var _el = window.document.getElementById( "loader" );
+            //setTimeout(function(){ return _el.style.display = "none" },500)
         }
     var getScroll = function(){ 
             
@@ -286,8 +288,8 @@
                         
                         <div>${title}</div>
                         <div>
-                            <span style="font-size:9px;color:#ccc">${msrp}</span>
-                            <span style="font-size:11px">${salePrice}</span>
+                            <span style="font-size:9px;color:#ccc">${io.currency.code} ${msrp}</span>
+                            <span style="font-size:11px">${io.currency.code} ${salePrice}</span>
                             <span class="right floated">${sale_rat}</span>
                         </div>
                     </a>

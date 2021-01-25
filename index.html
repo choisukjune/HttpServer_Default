@@ -116,6 +116,8 @@
             , randomwalk : AvatarImage( "R", 40 )
             , bluesman : AvatarImage( "B", 40 )
             , endclothing : AvatarImage( "E", 40 )
+            , beams : "https://www.beams.co.jp/favicon.ico"
+            , nanamica : "https://www.nanamica.com/resource/favicon/favicon.ico"
         }
     }
     
@@ -151,12 +153,12 @@
 
     var loader = {};
         loader.on = function(){
-            var _el = window.document.getElementById( "loader" );
-            _el.style.display = "block"
+            //var _el = window.document.getElementById( "loader" );
+            //_el.style.display = "block"
         }
         loader.off = function(){
-            var _el = window.document.getElementById( "loader" );
-            setTimeout(function(){ return _el.style.display = "none" },500)
+            //var _el = window.document.getElementById( "loader" );
+            //setTimeout(function(){ return _el.style.display = "none" },500)
         }
     var getScroll = function(){ 
             
@@ -261,8 +263,8 @@
                         
                         <div>${title}</div>
                         <div>
-                            <span style="font-size:9px;color:#ccc">${msrp}</span>
-                            <span style="font-size:11px">${salePrice}</span>
+                            <span style="font-size:9px;color:#ccc">${io.currency.code} ${msrp}</span>
+                            <span style="font-size:11px">${io.currency.code} ${salePrice}</span>
                             <span class="right floated">${sale_rat}</span>
                         </div>
                     </a>
@@ -374,6 +376,22 @@
 
     window.addEventListener('DOMContentLoaded', (e) => {
         console.log('DOM fully loaded and parsed');
+        getRequest( window.SERVER.APISERVER.URL + "/getTags", function(d){
+            debugger;
+            var _tagO = JSON.parse( d )
+            var _el_Tags = window.document.getElementById("tags")
+            var s,so;
+            for( s in _tagO ){
+                so = _tagO[ s ]
+                _el_Tags.innerHTML += `
+            <div class="ui red mini label" style="margin:5px;">
+                <a href="http://localhost:3000/html/findHashTag.html?tag=${s}" style="color:#fff!important;opacity: 1;">${s} : ${so}</a>
+            </div>
+            `
+            }
+            
+            
+        })
         getRequest( window.SERVER.APISERVER.URL + "/getTotalCount?colNm=all", function(d){
             window.HTML.list.totalCnt = Number( d );
             
@@ -461,7 +479,7 @@
             window.removeEventListener( 'scroll', scrollToGetNextData );
             alert( "더이상 데이터가 존재하지 않습니다." )
         }
-        if( (document.documentElement.scrollTop + window.innerHeight ) >= document.documentElement.scrollHeight )
+        if( (document.documentElement.scrollTop + window.innerHeight + 50 ) >= document.documentElement.scrollHeight )
         {
             console.log( window.HTML.list.curPage )
             getNextData()
@@ -478,7 +496,9 @@
             <div class="sixteen wide column" style="background-color: #fff;position: fixed;z-index: 998;">menu</div>
         </div>
         <div class="ui  grid">
-            <div class="sixteen wide column" style="margin:80px 40px;">
+            <div id="tags" class="sixteen wide column" style="margin:30px 0px 0px 0px;padding:25px">
+            </div>
+            <div class="sixteen wide column" >
                 <div class="ui eight stackable cards">
                 </div>
             </div>
